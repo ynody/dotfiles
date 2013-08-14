@@ -1,19 +1,16 @@
 
-
-"if has('macvim_kaoriya')
-    "let $PYTHON_DLL = "/opt/local/lib/libpython2.6.dylib"
-"endif
-
 set nocompatible
-filetype off
 
 if has('vim_starting')
-  set runtimepath+=~/.vim/neobundle.vim
-  call neobundle#rc(expand('~/.vim/.bundle'))
+  set runtimepath+=~/.vim/bundle/neobundle.vim/
 endif
 
+call neobundle#rc(expand('~/.vim/bundle'))
+
+NeoBundleFetch 'Shougo/neobundle.vim'
+
 NeoBundle 'git://github.com/Shougo/neocomplcache.git'
-NeoBundle 'git://github.com/Shougo/neobundle.vim.git'
+" NeoBundle 'git://github.com/Shougo/neobundle.vim.git'
 NeoBundle 'git://github.com/Shougo/unite.vim.git'
 "NeoBundle 'git://github.com/Shougo/vim-vcs.git'
 "NeoBundle 'git://github.com/Shougo/vimfiler.git'
@@ -22,6 +19,8 @@ NeoBundle 'git://github.com/Shougo/unite.vim.git'
 "NeoBundle 'git://github.com/Shougo/vinarise.git'
 NeoBundle 'git://github.com/scrooloose/nerdcommenter.git'
 
+NeoBundleCheck
+filetype plugin indent on
 
 set vb
 set number
