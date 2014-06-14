@@ -18,6 +18,9 @@ NeoBundle 'git://github.com/Shougo/unite.vim.git'
 "NeoBundle 'git://github.com/Shougo/vimshell.git'
 "NeoBundle 'git://github.com/Shougo/vinarise.git'
 NeoBundle 'git://github.com/scrooloose/nerdcommenter.git'
+NeoBundle 'kchmck/vim-coffee-script'
+NeoBundle 'claco/jasmine.vim'
+NeoBundle 'nathanaelkane/vim-indent-guides'
 
 NeoBundleCheck
 filetype plugin indent on
@@ -47,6 +50,8 @@ set statusline=%<%f\ %y%m%r%h%w%{'['.(&fenc!=''?&fenc:&enc).']['.&ff.']'}%=%l,%c
 "開いたファイルにcd
 au BufEnter * execute ":lcd " . expand("%:p:h")
 au! BufNewFile,BufRead *.jsx :set filetype=javascript
+au BufRead,BufNewFile,BufReadPre *.cofee set filetype=coffee
+autocmd FileType coffee setlocal sw=2 sts=2 ts=2 et
 
 " 大文字が含まれている時のみ、大文字と小文字が区別される
 set ignorecase smartcase 
@@ -149,39 +154,89 @@ let mapleader = ","
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-if &encoding !=# 'utf-8'
-  set encoding=japan
-endif
-set fileencoding=japan
-if has('iconv')
-  let s:enc_euc = 'euc-jp'
-  let s:enc_jis = 'iso-2022-jp'
-  " iconvがJISX0213に対応しているかをチェック
-  if iconv("\x87\x64\x87\x6a", 'cp932', 'euc-jisx0213') ==# "\xad\xc5\xad\xcb"
-    let s:enc_euc = 'euc-jisx0213'
-    let s:enc_jis = 'iso-2022-jp-3'
-  endif
-  " fileencodingsを構築
-  if &encoding ==# 'utf-8'
-    let s:fileencodings_default = &fileencodings
-    let &fileencodings = s:enc_jis .','. s:enc_euc .',cp932'
-    let &fileencodings = &fileencodings .','. s:fileencodings_default
-    unlet s:fileencodings_default
-  else
-    let &fileencodings = &fileencodings .','. s:enc_jis
-    set fileencodings+=utf-8,ucs-2le,ucs-2
-    if &encoding =~# '^euc-\%(jp\|jisx0213\)$'
-      set fileencodings+=cp932
-      set fileencodings-=euc-jp
-      set fileencodings-=euc-jisx0213
-      let &encoding = s:enc_euc
-    else
-      let &fileencodings = &fileencodings .','. s:enc_euc
-    endif
-  endif
-  unlet s:enc_euc
-  unlet s:enc_jis
-endif
+set encoding=utf-8
+set fileencodings=iso-2022-jp,cp932,sjis,euc-jp,utf-8
+
+" if &encoding !=# 'utf-8'
+  " set encoding=japan
+" endif
+" set fileencoding=japan
+" if has('iconv')
+  " let s:enc_euc = 'euc-jp'
+  " let s:enc_jis = 'iso-2022-jp'
+  " " iconvがJISX0213に対応しているかをチェック
+  " if iconv("\x87\x64\x87\x6a", 'cp932', 'euc-jisx0213') ==# "\xad\xc5\xad\xcb"
+    " let s:enc_euc = 'euc-jisx0213'
+    " let s:enc_jis = 'iso-2022-jp-3'
+  " endif
+  " " fileencodingsを構築
+  " if &encoding ==# 'utf-8'
+    " let s:fileencodings_default = &fileencodings
+    " let &fileencodings = s:enc_jis .','. s:enc_euc .',cp932'
+    " let &fileencodings = &fileencodings .','. s:fileencodings_default
+    " unlet s:fileencodings_default
+  " else
+    " let &fileencodings = &fileencodings .','. s:enc_jis
+    " set fileencodings+=utf-8,ucs-2le,ucs-2
+    " if &encoding =~# '^euc-\%(jp\|jisx0213\)$'
+      " set fileencodings+=cp932
+      " set fileencodings-=euc-jp
+      " set fileencodings-=euc-jisx0213
+      " let &encoding = s:enc_euc
+    " else
+      " let &fileencodings = &fileencodings .','. s:enc_euc
+    " endif
+  " endif
+  " unlet s:enc_euc
+  " unlet s:enc_jis
+" endif
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 colorscheme wombat256mod
+
+""" coffee
+" taglistの設定 coffeeを追加
+" let g:tlist_coffee_settings = 'coffee;f:function;v:variable'
+
+" QuickRunのcoffee
+" let g:quickrun_config['coffee'] = {
+"      \'command' : 'coffee',
+"      \'exec' : ['%c -cbp %s']
+"      \}
+
+"------------------------------------
+" vim-coffee-script
+"------------------------------------
+" 保存時にコンパイル
+autocmd BufWritePost *.coffee silent CoffeeMake! -cb | cwindow | redraw!
+
+"------------------------------------
+" jasmine.vim
+"------------------------------------
+" ファイルタイプを変更
+function! JasmineSetting()
+  au BufRead,BufNewFile *Helper.js,*Spec.js  set filetype=jasmine.javascript
+  au BufRead,BufNewFile *Helper.coffee,*Spec.coffee  set filetype=jasmine.coffee
+  au BufRead,BufNewFile,BufReadPre *Helper.coffee,*Spec.coffee  let b:quickrun_config = {'type' : 'coffee'}
+  call jasmine#load_snippets()
+  map <buffer> <leader>m :JasmineRedGreen<CR>
+  command! JasmineRedGreen :call jasmine#redgreen()
+  command! JasmineMake :call jasmine#make()
+endfunction
+au BufRead,BufNewFile,BufReadPre *.coffee,*.js call JasmineSetting()
+
+"------------------------------------
+" indent_guides
+"------------------------------------
+" インデントの深さに色を付ける
+let g:indent_guides_start_level=2
+let g:indent_guides_auto_colors=0
+let g:indent_guides_enable_on_vim_startup=0
+let g:indent_guides_color_change_percent=20
+let g:indent_guides_guide_size=1
+let g:indent_guides_space_guides=1
+
+hi IndentGuidesOdd  ctermbg=235
+hi IndentGuidesEven ctermbg=237
+au FileType coffee,ruby,javascript,python IndentGuidesEnable
+nmap <silent><Leader>ig <Plug>IndentGuidesToggle
